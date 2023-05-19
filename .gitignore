@@ -1,0 +1,4 @@
+.DS_Store
+**.o
+ft_ls
+.vscode

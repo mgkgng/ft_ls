@@ -1,10 +1,14 @@
 #pragma once
 
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <dirent.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <pwd.h>
+#include <grp.h>
+
 
 #include "libft.h"
 
