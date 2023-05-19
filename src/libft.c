@@ -11,6 +11,11 @@ void ft_puterr(char *s) {
 	write(2, s, ft_strlen(s));
 }
 
+void ft_putendl(char *s) {
+	write(1, s, ft_strlen(s));
+	write(1, "\n", 1);
+}
+
 void *ft_memset(void *b, int c, size_t len) {
 	char *p = b;
 	while (len-- > 0)
@@ -27,6 +32,15 @@ void *ft_calloc(size_t count, size_t size) {
 	if (!res)
 		return (NULL);
 	ft_bzero(res, count * size);
+	return (res);
+}
+
+char *ft_strdup(const char *s) {
+	char *res = ft_calloc(ft_strlen(s) + 1, sizeof(char));
+	if (!res)
+		return (NULL);
+	for (int i = 0; s[i]; i++)
+		res[i] = s[i];
 	return (res);
 }
 

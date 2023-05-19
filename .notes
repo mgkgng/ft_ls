@@ -36,3 +36,9 @@ S_ISBLK(m): un périphérique en mode bloc ?
 S_ISFIFO(m): une FIFO (tube nommé) ?
 S_ISLNK(m): un lien symbolique ? (Pas dans POSIX.1-1996).
 S_ISSOCK(m): une socket ? (Pas dans POSIX.1-1996).
+
+-------------------------------------------------------------------------
+
+DIR : a directory stream, which is a data structure used for reading the contents of a directory.
+( stream? -> a sequence of data elements that can be read or written sequentially. A common concept used in file I/O, where data is read or written in a stream-like fashion. )
+When we refer to the 'directory stream', we mean the sequential access to the entries in a directory as facilitated by the 'DIR' type and related functions. The directory stream allows you to iterate over the entries in a directory, read their information, and perform operations based on that information.
