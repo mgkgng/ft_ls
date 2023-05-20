@@ -9,7 +9,7 @@ static int get_options(char *flag_str) {
         else if (flag_str[i] == 'R')
             res |= FLAG_RECUR;
         else if (flag_str[i] == 'r')
-            res |= FLAG_RVRS;
+            res |= FLAG_REV;
         else if (flag_str[i] == 'a')
             res |= FLAG_A;
         else if (flag_str[i] == 't')

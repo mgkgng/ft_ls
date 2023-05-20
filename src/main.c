@@ -57,10 +57,31 @@ void print_size(off_t size) {
     ft_putnbr(size);
 }
 
+t_list *get_file_list(char *path) {
+    t_list *files = NULL;
+
+    DIR *dir = opendir(path);
+    if (!dir) {
+        print_ls_err(path);
+        exit(EXIT_FAILURE);
+    }
+    struct dirent *entry;
+    while ((entry = readdir(dir))) {
+        if (entry->d_name[0] == '.' && !(args.options & FLAG_A))
+            continue ;
+        ft_lstadd_back(&files, ft_lstnew(entry->d_name));
+    }
+    closedir(dir);
+    ft_lstsort(&files, (args.options & FLAG_REV));
+    return (files);
+}
+
 void ft_ls(char *path, char *file) {
     if (file) {
         path = ft_strjoin(path, "/");
         path = ft_strjoin(path, file);
+        ft_putstr(path);
+        ft_putendl(":"); 
     }
 
     struct stat statbuf;
@@ -74,33 +95,26 @@ void ft_ls(char *path, char *file) {
         return ;
     }
 
-    if (file) {
-        ft_putstr(path);
-        ft_putendl(":");   
-    }
-
-    DIR *dir = opendir(path);
-    if (!dir) {
-        perror("ft_ls");
-        return ;
-    }
-    struct dirent *entry;
-    t_list *files = NULL;
-    while ((entry = readdir(dir))) {
-        if (entry->d_name[0] == '.' && !(args.options & FLAG_A))
-            continue ;
-        ft_lstadd_back(&files, ft_lstnew(ft_strdup(entry->d_name)));
-    }
-    closedir(dir);
-    ft_lstsort(&files, (args.options & FLAG_REV));
+    t_list *files = get_file_list(path);
+    t_list *subdirs = NULL;
     while (files) {
         ft_putendl(files->content);
 
         if (args.options & FLAG_RECUR) {
-            ft_ls(path, files->content);
+            struct stat file_statbuf;
+            char *file_path = ft_strjoin(path, "/");
+            file_path = ft_strjoin(file_path, files->content);
+
+            if (lstat(file_path, &file_statbuf) == -1) {
+                print_ls_err(path);
+                return ;
+            }
+
+            if (S_ISDIR(file_statbuf.st_mode))
+                ft_lstadd_back(&subdirs, ft_lstnew(ft_strdup(files->content)));
         }
 
-        else if (args.options & FLAG_L) {
+        if (args.options & FLAG_L) {
             struct stat file_statbuf;
             char *file_path = ft_strjoin(path, "/");
             file_path = ft_strjoin(file_path, files->content);
@@ -118,14 +132,17 @@ void ft_ls(char *path, char *file) {
             print_time(file_statbuf.st_mtime);
             ft_putendl(files->content);
         }
-        
         files = files->next;
     }
 
-    // if recursive mode, call ft_ls on this directory
-    // if (args.options & FLAG_RECUR) {
-        // ft_ls(path, args);
-    // }
+    if (subdirs) {
+        t_list *begin = subdirs;
+        while (begin) {
+            ft_putendl("");
+            ft_ls(path, begin->content);
+            begin = begin->next;
+        }
+    }
 }
 
 int main(int ac, char **av) {

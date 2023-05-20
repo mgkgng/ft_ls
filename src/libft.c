@@ -11,11 +11,6 @@ void ft_putchar(char c) { write(1, &c, 1); }
 void ft_putstr(char *s) { write(1, s, ft_strlen(s)); }
 void ft_putstr_fd(char *s, int fd) { write(fd, s, ft_strlen(s)); }
 
-void ft_puttab(char *s) {
-	write(1, s, ft_strlen(s));
-	write(1, "\t", 1);
-}
-
 void ft_putendl(char *s) {
 	write(1, s, ft_strlen(s));
 	write(1, "\n", 1);
@@ -24,7 +19,7 @@ void ft_putendl(char *s) {
 void ft_putnbr(int n) {
 	if (n < 0) {
 		ft_putstr("-");
-		n = -n;
+		n *= -1;
 	}
 	if (n > 9)
 		ft_putnbr(n / 10);
@@ -38,9 +33,7 @@ void *ft_memset(void *b, int c, size_t len) {
 	return (b);
 }
 
-void ft_bzero(void *s, size_t n) {
-	ft_memset(s, 0, n);
-}
+void ft_bzero(void *s, size_t n) { ft_memset(s, 0, n); }
 
 void *ft_calloc(size_t count, size_t size) {
 	void *res = malloc(count * size);
