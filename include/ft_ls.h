@@ -9,13 +9,13 @@
 #include <pwd.h>
 #include <grp.h>
 #include <stdbool.h>
-
+#include <time.h>
 
 #include "libft.h"
 
 #define FLAG_L 1 << 0
 #define FLAG_RECUR 1 << 1
-#define FLAG_RVRS 1 << 2
+#define FLAG_REV 1 << 2
 #define FLAG_A 1 << 3
 #define FLAG_T 1 << 4
 

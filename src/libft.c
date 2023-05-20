@@ -7,22 +7,28 @@ size_t ft_strlen(const char *s) {
 	return (res);
 }
 
-void ft_putstr(char *s) {
-	write(1, s, ft_strlen(s));
-}
+void ft_putchar(char c) { write(1, &c, 1); }
+void ft_putstr(char *s) { write(1, s, ft_strlen(s)); }
+void ft_putstr_fd(char *s, int fd) { write(fd, s, ft_strlen(s)); }
 
 void ft_puttab(char *s) {
 	write(1, s, ft_strlen(s));
 	write(1, "\t", 1);
 }
 
-void ft_puterr(char *s) {
-	write(2, s, ft_strlen(s));
-}
-
 void ft_putendl(char *s) {
 	write(1, s, ft_strlen(s));
 	write(1, "\n", 1);
+}
+
+void ft_putnbr(int n) {
+	if (n < 0) {
+		ft_putstr("-");
+		n = -n;
+	}
+	if (n > 9)
+		ft_putnbr(n / 10);
+	ft_putchar(n % 10 + '0');
 }
 
 void *ft_memset(void *b, int c, size_t len) {
@@ -93,13 +99,17 @@ void ft_lstadd_back(t_list **alst, t_list *new_list) {
 	begin->next = new_list;
 }
 
-void ft_lstsort(t_list **alst) {
+void ft_lstsort(t_list **alst, bool reverse) {
 	t_list *begin = *alst;
 	t_list *tmp = NULL;
 	while (begin) {
 		tmp = begin->next;
 		while (tmp) {
-			if (ft_strcmp(begin->content, tmp->content) > 0) {
+			if (!reverse && ft_strcmp(begin->content, tmp->content) > 0) {
+				void *content = begin->content;
+				begin->content = tmp->content;
+				tmp->content = content;
+			} else if (reverse && ft_strcmp(begin->content, tmp->content) < 0) {
 				void *content = begin->content;
 				begin->content = tmp->content;
 				tmp->content = content;

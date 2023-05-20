@@ -3,9 +3,9 @@
 t_ls args;
 
 void print_ls_err(char *path) {
-    ft_puterr("ft_ls: ");
-    ft_puterr(path);
-    ft_puterr(": ");
+    ft_putstr_fd("ft_ls: ", 2);
+    ft_putstr_fd(path, 2);
+    ft_putstr_fd(": ", 2);
     perror(0);
 }
 
@@ -24,6 +24,37 @@ void print_mode(mode_t mode) {
     mode_str[9] = (mode & S_IXOTH) ? 'x' : '-';
     mode_str[10] = '\0';
     ft_putstr(mode_str);
+    ft_putstr("  ");
+}
+
+void print_owner(uid_t uid) {
+    struct passwd *pwd = getpwuid(uid);
+    if (!pwd) {
+        perror("ft_ls");
+        return ;
+    }
+    ft_putstr(pwd->pw_name);
+    ft_putstr(" ");
+}
+
+void print_group(gid_t gid) {
+    struct group *grp = getgrgid(gid);
+    if (!grp) {
+        perror("ft_ls");
+        return ;
+    }
+    ft_putstr(grp->gr_name);
+    ft_putstr(" ");
+}
+
+void print_time(time_t time) {
+    char *time_str = ctime(&time);
+    time_str[ft_strlen(time_str) - 1] = '\0';
+    ft_putstr(time_str);
+}
+
+void print_size(off_t size) {
+    ft_putnbr(size);
 }
 
 void ft_ls(char *path, char *file) {
@@ -61,29 +92,31 @@ void ft_ls(char *path, char *file) {
         ft_lstadd_back(&files, ft_lstnew(ft_strdup(entry->d_name)));
     }
     closedir(dir);
-    ft_lstsort(&files);
+    ft_lstsort(&files, (args.options & FLAG_REV));
     while (files) {
-        if (!args.options)
-            ft_putendl(files->content);
+        ft_putendl(files->content);
 
-        else if (args.options & FLAG_A) {
-            // print name
-            ft_putendl(files->content);
-        }
-
-        else if (args.options & FLAG_RECUR) {
+        if (args.options & FLAG_RECUR) {
             ft_ls(path, files->content);
         }
 
         else if (args.options & FLAG_L) {
-            // print mode
+            struct stat file_statbuf;
+            char *file_path = ft_strjoin(path, "/");
+            file_path = ft_strjoin(file_path, files->content);
+
+            if (lstat(file_path, &file_statbuf) == -1) {
+                print_ls_err(path);
+                return ;
+            }
+
+            print_mode(file_statbuf.st_mode);
             // print number of links
-            // print owner name
-            // print group name
-            // print size
-            // print date
-            // print name
-            printf("coucou\n");
+            print_owner(file_statbuf.st_uid);
+            print_group(file_statbuf.st_gid);
+            print_size(file_statbuf.st_size);
+            print_time(file_statbuf.st_mtime);
+            ft_putendl(files->content);
         }
         
         files = files->next;
