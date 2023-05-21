@@ -84,30 +84,31 @@ void print_time(time_t time) {
     ft_putstr(" ");
 }
 
-void print_nlinks(nlink_t nlinks) {
+void print_nlinks(nlink_t nlinks, int max_len_links) {
+    while (max_len_links-- > ft_numlen(nlinks))
+        ft_putchar(' ');
     ft_putnbr(nlinks);
-    ft_putstr(" ");
+    ft_putchar(' ');
 }
 
-void print_size(off_t size) {
-    char str[10];
-    char *size_str = ft_lltoa(size);
-    int i = 0;
-    while (i < 9 - (int) ft_strlen(size_str))
-        str[i++] = ' ';
-    ft_strcpy(str + i, size_str);
-    ft_putstr(str);
-    ft_putstr(" ");
-    free(size_str);
+void print_size(off_t size, int max_len_size) {
+    while (max_len_size-- > ft_numlen(size))
+        ft_putchar(' ');
+    ft_putnbr(size);
+    ft_putchar(' ');
 }
 
 int compare_files(void *a, void *b, int flags) {
     t_file *file_a = (t_file *) a;
     t_file *file_b = (t_file *) b;
+
     // if (flags & FLAG_S)
     //     return (flags & FLAG_REV) ? file_b->stat.st_size - file_a->stat.st_size : file_a->stat.st_size - file_b->stat.st_size;
-    if (flags & FLAG_T)
-        return (flags & FLAG_REV) ? file_b->stat.st_mtime - file_a->stat.st_mtime : file_a->stat.st_mtime - file_b->stat.st_mtime;
+    if (flags & FLAG_T) {
+        int res = (flags & FLAG_REV) ? file_a->stat.st_mtime - file_b->stat.st_mtime : file_b->stat.st_mtime - file_a->stat.st_mtime;
+        if (res != 0)
+            return (res);
+    }
     return (flags & FLAG_REV) ? ft_strcmp(file_b->file, file_a->file) : ft_strcmp(file_a->file, file_b->file);
 }
 
@@ -140,22 +141,22 @@ t_dir *get_file_list(char *path) {
             print_ls_err(path);
             continue ;
         }
-        if (S_ISDIR(statbuf.st_mode))
+        if ((args.options & FLAG_RECUR) && S_ISDIR(statbuf.st_mode))
             ft_lstadd_back(&subdirs, ft_lstnew(ft_strdup(filename)));
 
         file->stat = statbuf;
-        max_len_size = MAX(max_len_size, statbuf.st_size);
-        max_len_links = MAX(max_len_links, statbuf.st_nlink);
+        max_len_size = MAX(max_len_size, ft_numlen(statbuf.st_size));
+        max_len_links = MAX(max_len_links, ft_numlen(statbuf.st_nlink));
         total += statbuf.st_blocks;
         ft_lstadd_back(&files, ft_lstnew(file));
     }
     closedir(dir);
-    ft_lstsort(&files, (args.options & FLAG_REV), compare_files);
+    ft_lstsort(&files, args.options, compare_files);
 
     t_dir *res = malloc(sizeof(t_dir));
     res->path = path;
     res->files = files;
-    // res->subdirs = subdirs;
+    res->subdirs = subdirs;
     res->max_len_links = max_len_links;
     res->max_len_size = max_len_size;
     res->total = total;
@@ -186,14 +187,20 @@ void ft_ls(char *path, char *file) {
     t_dir *dir = get_file_list(path);
     if (!dir)
         return ;
+    if (args.options & FLAG_L) {
+        ft_putstr("total ");
+        ft_putnbr(dir->total);
+        ft_putendl("");
+    }
+
     t_list *curr = dir->files;
     while (curr) {
         if (args.options & FLAG_L) {
             print_mode(FILE(curr, stat.st_mode));
-            print_nlinks(FILE(curr, stat.st_nlink));
+            print_nlinks(FILE(curr, stat.st_nlink), dir->max_len_links);
             print_owner(FILE(curr, stat.st_uid));
             print_group(FILE(curr, stat.st_gid));
-            print_size(FILE(curr, stat.st_size));
+            print_size(FILE(curr, stat.st_size), dir->max_len_size);
             print_time(FILE(curr, stat.st_mtime));
         }
         ft_putendl(FILE(curr, file));
@@ -205,18 +212,18 @@ void ft_ls(char *path, char *file) {
         curr = dir->subdirs;
         while (curr) {
             ft_putendl("");
-            ft_ls(path, FILE(curr, file));
+            ft_ls(path, curr->content);
             curr = curr->next;
         }
     }
 }
 
 int main(int ac, char **av) {
-    args = parse(ac, av);
+    args = parse(ac, av);    
     
     t_list *begin = args.files;
     while (begin) {
-        ft_ls(begin->content, false);
+        ft_ls(begin->content, NULL);
         begin = begin->next;
     }
     return 0;

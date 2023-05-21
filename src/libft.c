@@ -144,3 +144,17 @@ void ft_lstsort(t_list **alst, int flags, int (*cmp)(void *, void *, int)) {
 		begin = begin->next;
 	}
 }
+
+int ft_numlen(long long n) {
+	int res = 0;
+	if (n < 0) {
+		res++;
+		n *= -1;
+	}
+	while (n > 9) {
+		res++;
+		n /= 10;
+	}
+	res++;
+	return (res);
+}
