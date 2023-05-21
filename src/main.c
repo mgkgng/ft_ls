@@ -2,100 +2,11 @@
 
 t_ls args;
 
-typedef struct s_file {
-    char *file;
-    char *path;
-    struct stat stat;
-} t_file;
-
-typedef struct s_dir {
-    char *path;
-    int max_len_size;
-    int max_len_links;
-    int total;
-    t_list *files;
-    t_list *subdirs;
-} t_dir;
-
-
 void print_ls_err(char *path) {
     ft_putstr_fd("ft_ls: ", 2);
     ft_putstr_fd(path, 2);
     ft_putstr_fd(": ", 2);
     perror(0);
-}
-
-void print_mode(mode_t mode) {
-    char mode_str[11];
-
-    mode_str[0] = (S_ISDIR(mode)) ? 'd' : (S_ISLNK(mode)) ? 'l' : '-';
-    mode_str[1] = (mode & S_IRUSR) ? 'r' : '-';
-    mode_str[2] = (mode & S_IWUSR) ? 'w' : '-';
-    mode_str[3] = (mode & S_IXUSR) ? 'x' : '-';
-    mode_str[4] = (mode & S_IRGRP) ? 'r' : '-';
-    mode_str[5] = (mode & S_IWGRP) ? 'w' : '-';
-    mode_str[6] = (mode & S_IXGRP) ? 'x' : '-';
-    mode_str[7] = (mode & S_IROTH) ? 'r' : '-';
-    mode_str[8] = (mode & S_IWOTH) ? 'w' : '-';
-    mode_str[9] = (mode & S_IXOTH) ? 'x' : '-';
-    mode_str[10] = '\0';
-    ft_putstr(mode_str);
-    ft_putstr("  ");
-}
-
-void print_owner(uid_t uid) {
-    struct passwd *pwd = getpwuid(uid);
-    if (!pwd) {
-        perror("ft_ls");
-        return ;
-    }
-    ft_putstr(pwd->pw_name);
-    ft_putstr(" ");
-}
-
-void print_group(gid_t gid) {
-    struct group *grp = getgrgid(gid);
-    if (!grp) {
-        perror("ft_ls");
-        return ;
-    }
-    ft_putstr(grp->gr_name);
-    ft_putstr(" ");
-}
-
-void print_time(time_t time) {
-    char *time_str = ctime(&time);
-    time_str[ft_strlen(time_str) - 1] = '\0';
-
-    char *start_of_month = time_str + 4;
-    char *start_of_day = start_of_month + 4;
-    char *start_of_time = start_of_day + 3;
-
-    start_of_month[-1] = '\0';
-    start_of_day[-1] = '\0';
-    start_of_time[-1] = '\0';
-    start_of_time[5] = '\0';
-
-    ft_putstr(start_of_day);
-    ft_putstr(" ");
-    ft_putstr(start_of_month);
-    ft_putstr(" ");
-    ft_putstr(start_of_time);
-    ft_putstr(" ");
-}
-
-void print_nlinks(nlink_t nlinks, int max_len_links) {
-    while (max_len_links-- > ft_numlen(nlinks))
-        ft_putchar(' ');
-    ft_putnbr(nlinks);
-    ft_putchar(' ');
-}
-
-void print_size(off_t size, int max_len_size) {
-    while (max_len_size-- > ft_numlen(size))
-        ft_putchar(' ');
-    ft_putnbr(size);
-    ft_putchar(' ');
 }
 
 int compare_files(void *a, void *b, int flags) {
@@ -112,7 +23,7 @@ int compare_files(void *a, void *b, int flags) {
     return (flags & FLAG_REV) ? ft_strcmp(file_b->file, file_a->file) : ft_strcmp(file_a->file, file_b->file);
 }
 
-t_dir *get_file_list(char *path) {
+t_dir *get_dir_info(char *path) {
     t_list *files = NULL;
     t_list *subdirs = NULL;
     int max_len_size = 0;
@@ -178,13 +89,14 @@ void ft_ls(char *path, char *file) {
     }
 
     if (!S_ISDIR(statbuf.st_mode)) {
-
+        if (args.options & FLAG_L)
+            print_long_format(statbuf, 0 ,0);
         ft_putendl((file) ? file : path);
         // Should get information (if flag)
         return ;
     }
 
-    t_dir *dir = get_file_list(path);
+    t_dir *dir = get_dir_info(path);
     if (!dir)
         return ;
     if (args.options & FLAG_L) {
@@ -195,19 +107,11 @@ void ft_ls(char *path, char *file) {
 
     t_list *curr = dir->files;
     while (curr) {
-        if (args.options & FLAG_L) {
-            print_mode(FILE(curr, stat.st_mode));
-            print_nlinks(FILE(curr, stat.st_nlink), dir->max_len_links);
-            print_owner(FILE(curr, stat.st_uid));
-            print_group(FILE(curr, stat.st_gid));
-            print_size(FILE(curr, stat.st_size), dir->max_len_size);
-            print_time(FILE(curr, stat.st_mtime));
-        }
+        if (args.options & FLAG_L)
+            print_long_format(FILE(curr, stat), dir->max_len_size, dir->max_len_links);
         ft_putendl(FILE(curr, file));
         curr = curr->next;
     }
-
-    
     if (dir->subdirs) {
         curr = dir->subdirs;
         while (curr) {

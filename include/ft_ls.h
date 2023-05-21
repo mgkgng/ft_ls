@@ -27,4 +27,20 @@ typedef struct s_ls {
     t_list *files;
 } t_ls;
 
+typedef struct s_file {
+    char *file;
+    char *path;
+    struct stat stat;
+} t_file;
+
+typedef struct s_dir {
+    char *path;
+    int max_len_size;
+    int max_len_links;
+    int total;
+    t_list *files;
+    t_list *subdirs;
+} t_dir;
+
 t_ls parse(int ac, char **av);
+void print_long_format(struct stat statbuf, int max_len_links, int max_len_size);
