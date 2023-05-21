@@ -1,0 +1,62 @@
+The stat structure
+
+struct stat {
+    dev_t     st_dev;         /* ID of device containing file */
+    ino_t     st_ino;         /* Inode number */
+    mode_t    st_mode;        /* File type and mode */
+    nlink_t   st_nlink;       /* Number of hard links */
+    uid_t     st_uid;         /* User ID of owner */
+    gid_t     st_gid;         /* Group ID of owner */
+    dev_t     st_rdev;        /* Device ID (if special file) */
+    off_t     st_size;        /* Total size, in bytes */
+    blksize_t st_blksize;     /* Block size for filesystem I/O */
+    blkcnt_t  st_blocks;      /* Number of 512B blocks allocated */
+
+    /* Since Linux 2.6, the kernel supports nanosecond
+        precision for the following timestamp fields.
+        For the details before Linux 2.6, see NOTES. */
+
+    struct timespec st_atim;  /* Time of last access */
+    struct timespec st_mtim;  /* Time of last modification */
+    struct timespec st_ctim;  /* Time of last status change */
+
+#define st_atime st_atim.tv_sec      /* Backward compatibility */
+#define st_mtime st_mtim.tv_sec
+#define st_ctime st_ctim.tv_sec
+};
+
+st_mode -> this field contains the file type and mode.
+st_size -> this field contains the file size in bytes.
+
+some Feature Test Macros:
+S_ISREG(m): un fichier ordinaire ?
+S_ISDIR(m): un répertoire ?
+S_ISCHR(m): un périphérique en mode caractère ?
+S_ISBLK(m): un périphérique en mode bloc ?
+S_ISFIFO(m): une FIFO (tube nommé) ?
+S_ISLNK(m): un lien symbolique ? (Pas dans POSIX.1-1996).
+S_ISSOCK(m): une socket ? (Pas dans POSIX.1-1996).
+
+-------------------------------------------------------------------------
+
+DIR : a directory stream, which is a data structure used for reading the contents of a directory.
+( stream? -> a sequence of data elements that can be read or written sequentially. A common concept used in file I/O, where data is read or written in a stream-like fashion. )
+When we refer to the 'directory stream', we mean the sequential access to the entries in a directory as facilitated by the 'DIR' type and related functions. The directory stream allows you to iterate over the entries in a directory, read their information, and perform operations based on that information.
+
+-------------------------------------------------------------------------
+
+Disk Blocks:
+A disk block is a segment of space of space on a disk which can be addressed and used to store data. It's a unit of space allocation for files and directories that determines how much data can be written. It's the smallest amount of data the file system cna read or write.
+When a file is created, it's allocated a certain number of these blocks depending on its size. For example, if the file system uses a block size of 4KB, a file size of 1KB will still use one entire block, while a file size of 5KB would use two blocks.
+
+-------------------------------------------------------------------------
+
+Access Control Lists (ACLs)
+An ACL provides more detailed and fine-grained control over file permission than traditional UNIX permissions (owner, group, others). While traditional permissions allow you to set read, write and execute permissions for the owner, group and others, ACLs allow you to set permissions for specific users or groups.
+For example, if you have a file where you want user 'alice' to have read access, user 'bob' to have write access and user 'jimmy' to have no access at all, you can do this with an ACL, but not with traditional UNIX permissions.
+In the context of the 'ls' command, if a file has an ACL, this is typically indicated by a '+' at the end of the permissions string in the long listing format.
+
+Extended Attributes:
+Extended Attributes are a feature of the file system that allows arbitrary metadata to be associated with a file or directory. This metadata is sotred as key-value pairs. For example, you might have a key 'user.comment' with a value 'This is my important file'.
+Extended Attributes can be used for a wide range of purposes, depending on the system and the specific application. For example, they might be used to store the icon of a file, to indicate that a file should be backed up, or to mark a file as being in a particular state for a version control system.
+n the context of the ls command, the presence of Extended Attributes can be indicated in various ways, depending on the system and the specific implementation of ls. For example, they might be indicated by a '@' at the end of the permissions string in the long listing format (ls -l).

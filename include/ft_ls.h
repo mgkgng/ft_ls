@@ -19,6 +19,9 @@
 #define FLAG_A 1 << 3
 #define FLAG_T 1 << 4
 
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#define FILE(x, y) ((t_file *)(x->content))->y
+
 typedef struct s_ls {
     int options;
     t_list *files;

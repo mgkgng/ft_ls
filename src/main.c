@@ -2,6 +2,22 @@
 
 t_ls args;
 
+typedef struct s_file {
+    char *file;
+    char *path;
+    struct stat stat;
+} t_file;
+
+typedef struct s_dir {
+    char *path;
+    int max_len_size;
+    int max_len_links;
+    int total;
+    t_list *files;
+    t_list *subdirs;
+} t_dir;
+
+
 void print_ls_err(char *path) {
     ft_putstr_fd("ft_ls: ", 2);
     ft_putstr_fd(path, 2);
@@ -50,30 +66,100 @@ void print_group(gid_t gid) {
 void print_time(time_t time) {
     char *time_str = ctime(&time);
     time_str[ft_strlen(time_str) - 1] = '\0';
-    ft_putstr(time_str);
+
+    char *start_of_month = time_str + 4;
+    char *start_of_day = start_of_month + 4;
+    char *start_of_time = start_of_day + 3;
+
+    start_of_month[-1] = '\0';
+    start_of_day[-1] = '\0';
+    start_of_time[-1] = '\0';
+    start_of_time[5] = '\0';
+
+    ft_putstr(start_of_day);
+    ft_putstr(" ");
+    ft_putstr(start_of_month);
+    ft_putstr(" ");
+    ft_putstr(start_of_time);
+    ft_putstr(" ");
+}
+
+void print_nlinks(nlink_t nlinks) {
+    ft_putnbr(nlinks);
+    ft_putstr(" ");
 }
 
 void print_size(off_t size) {
-    ft_putnbr(size);
+    char str[10];
+    char *size_str = ft_lltoa(size);
+    int i = 0;
+    while (i < 9 - (int) ft_strlen(size_str))
+        str[i++] = ' ';
+    ft_strcpy(str + i, size_str);
+    ft_putstr(str);
+    ft_putstr(" ");
+    free(size_str);
 }
 
-t_list *get_file_list(char *path) {
+int compare_files(void *a, void *b, int flags) {
+    t_file *file_a = (t_file *) a;
+    t_file *file_b = (t_file *) b;
+    // if (flags & FLAG_S)
+    //     return (flags & FLAG_REV) ? file_b->stat.st_size - file_a->stat.st_size : file_a->stat.st_size - file_b->stat.st_size;
+    if (flags & FLAG_T)
+        return (flags & FLAG_REV) ? file_b->stat.st_mtime - file_a->stat.st_mtime : file_a->stat.st_mtime - file_b->stat.st_mtime;
+    return (flags & FLAG_REV) ? ft_strcmp(file_b->file, file_a->file) : ft_strcmp(file_a->file, file_b->file);
+}
+
+t_dir *get_file_list(char *path) {
     t_list *files = NULL;
+    t_list *subdirs = NULL;
+    int max_len_size = 0;
+    int max_len_links = 0;
+    int total = 0;
 
     DIR *dir = opendir(path);
     if (!dir) {
         print_ls_err(path);
-        exit(EXIT_FAILURE);
+        return (NULL);
     }
     struct dirent *entry;
     while ((entry = readdir(dir))) {
-        if (entry->d_name[0] == '.' && !(args.options & FLAG_A))
+        char *filename = entry->d_name;
+        if (filename[0] == '.' && !(args.options & FLAG_A))
             continue ;
-        ft_lstadd_back(&files, ft_lstnew(entry->d_name));
+
+        t_file *file = malloc(sizeof(t_file));
+        file->file = ft_strdup(filename);
+        char *file_path = ft_strjoin(path, "/");
+        file_path = ft_strjoin(file_path, filename);
+        file->path = file_path;
+
+        struct stat statbuf;
+        if (lstat(file_path, &statbuf) == -1) {
+            print_ls_err(path);
+            continue ;
+        }
+        if (S_ISDIR(statbuf.st_mode))
+            ft_lstadd_back(&subdirs, ft_lstnew(ft_strdup(filename)));
+
+        file->stat = statbuf;
+        max_len_size = MAX(max_len_size, statbuf.st_size);
+        max_len_links = MAX(max_len_links, statbuf.st_nlink);
+        total += statbuf.st_blocks;
+        ft_lstadd_back(&files, ft_lstnew(file));
     }
     closedir(dir);
-    ft_lstsort(&files, (args.options & FLAG_REV));
-    return (files);
+    ft_lstsort(&files, (args.options & FLAG_REV), compare_files);
+
+    t_dir *res = malloc(sizeof(t_dir));
+    res->path = path;
+    res->files = files;
+    // res->subdirs = subdirs;
+    res->max_len_links = max_len_links;
+    res->max_len_size = max_len_size;
+    res->total = total;
+    return (res);
 }
 
 void ft_ls(char *path, char *file) {
@@ -89,58 +175,38 @@ void ft_ls(char *path, char *file) {
         print_ls_err(path);
         return ;
     }
+
     if (!S_ISDIR(statbuf.st_mode)) {
+
         ft_putendl((file) ? file : path);
         // Should get information (if flag)
         return ;
     }
 
-    t_list *files = get_file_list(path);
-    t_list *subdirs = NULL;
-    while (files) {
-        ft_putendl(files->content);
-
-        if (args.options & FLAG_RECUR) {
-            struct stat file_statbuf;
-            char *file_path = ft_strjoin(path, "/");
-            file_path = ft_strjoin(file_path, files->content);
-
-            if (lstat(file_path, &file_statbuf) == -1) {
-                print_ls_err(path);
-                return ;
-            }
-
-            if (S_ISDIR(file_statbuf.st_mode))
-                ft_lstadd_back(&subdirs, ft_lstnew(ft_strdup(files->content)));
-        }
-
+    t_dir *dir = get_file_list(path);
+    if (!dir)
+        return ;
+    t_list *curr = dir->files;
+    while (curr) {
         if (args.options & FLAG_L) {
-            struct stat file_statbuf;
-            char *file_path = ft_strjoin(path, "/");
-            file_path = ft_strjoin(file_path, files->content);
-
-            if (lstat(file_path, &file_statbuf) == -1) {
-                print_ls_err(path);
-                return ;
-            }
-
-            print_mode(file_statbuf.st_mode);
-            // print number of links
-            print_owner(file_statbuf.st_uid);
-            print_group(file_statbuf.st_gid);
-            print_size(file_statbuf.st_size);
-            print_time(file_statbuf.st_mtime);
-            ft_putendl(files->content);
+            print_mode(FILE(curr, stat.st_mode));
+            print_nlinks(FILE(curr, stat.st_nlink));
+            print_owner(FILE(curr, stat.st_uid));
+            print_group(FILE(curr, stat.st_gid));
+            print_size(FILE(curr, stat.st_size));
+            print_time(FILE(curr, stat.st_mtime));
         }
-        files = files->next;
+        ft_putendl(FILE(curr, file));
+        curr = curr->next;
     }
 
-    if (subdirs) {
-        t_list *begin = subdirs;
-        while (begin) {
+    
+    if (dir->subdirs) {
+        curr = dir->subdirs;
+        while (curr) {
             ft_putendl("");
-            ft_ls(path, begin->content);
-            begin = begin->next;
+            ft_ls(path, FILE(curr, file));
+            curr = curr->next;
         }
     }
 }

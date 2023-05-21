@@ -64,6 +64,42 @@ char *ft_strdup(const char *s) {
 	return (res);
 }
 
+char *reverse(char *s) {
+	int len = ft_strlen(s);
+	char *res = ft_calloc(len + 1, sizeof(char));
+	if (!res)
+		return (NULL);
+	for (int i = 0; i < len; i++)
+		res[i] = s[len - i - 1];
+	return (res);
+}
+
+char *ft_lltoa(long long n) {
+	char *res = ft_calloc(21, sizeof(char));
+	if (!res)
+		return (NULL);
+	int i = 0;
+	if (n < 0) {
+		res[i++] = '-';
+		n *= -1;
+	}
+	while (n > 9) {
+		res[i++] = n % 10 + '0';
+		n /= 10;
+	}
+	res[i++] = n % 10 + '0';
+	res[i] = '\0';
+	char *rev = reverse(res);
+	free(res);
+	return (rev);
+}
+
+void ft_strcpy(char *dst, const char *src) {
+	while (*src)
+		*dst++ = *src++;
+	*dst = '\0';
+}
+
 int ft_strcmp(const char *s1, const char *s2) {
 	while (*s1 && *s2 && *s1 == *s2) {
 		s1++;
@@ -92,20 +128,16 @@ void ft_lstadd_back(t_list **alst, t_list *new_list) {
 	begin->next = new_list;
 }
 
-void ft_lstsort(t_list **alst, bool reverse) {
+void ft_lstsort(t_list **alst, int flags, int (*cmp)(void *, void *, int)) {
 	t_list *begin = *alst;
 	t_list *tmp = NULL;
 	while (begin) {
 		tmp = begin->next;
 		while (tmp) {
-			if (!reverse && ft_strcmp(begin->content, tmp->content) > 0) {
-				void *content = begin->content;
+			if (cmp(begin->content, tmp->content, flags) > 0) {
+				void *tmp_content = begin->content;
 				begin->content = tmp->content;
-				tmp->content = content;
-			} else if (reverse && ft_strcmp(begin->content, tmp->content) < 0) {
-				void *content = begin->content;
-				begin->content = tmp->content;
-				tmp->content = content;
+				tmp->content = tmp_content;
 			}
 			tmp = tmp->next;
 		}
