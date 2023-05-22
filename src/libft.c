@@ -26,14 +26,14 @@ void ft_putnbr(int n) {
 	ft_putchar(n % 10 + '0');
 }
 
-void *ft_memset(void *b, int c, size_t len) {
+static void *ft_memset(void *b, int c, size_t len) {
 	char *p = b;
 	while (len-- > 0)
 		*p++ = c;
 	return (b);
 }
 
-void ft_bzero(void *s, size_t n) { ft_memset(s, 0, n); }
+static void ft_bzero(void *s, size_t n) { ft_memset(s, 0, n); }
 
 void *ft_calloc(size_t count, size_t size) {
 	void *res = malloc(count * size);
@@ -43,15 +43,17 @@ void *ft_calloc(size_t count, size_t size) {
 	return (res);
 }
 
-char *ft_strjoin(char const *s1, char const *s2) {
+char *ft_strjoin(char *s1, char *s2, bool free_s1) {
 	char *res = ft_calloc(ft_strlen(s1) + ft_strlen(s2) + 1, sizeof(char));
 	if (!res)
 		return (NULL);
-	int i = 0;
-	while (*s1)
-		res[i++] = *s1++;
-	while (*s2)
-		res[i++] = *s2++;
+	int i = -1;
+	while (s1[++i])
+		res[i] = s1[i];
+	for (int j = 0; s2[j]; j++)
+		res[i++] = s2[j];
+	if (free_s1)
+		free(s1);
 	return (res);
 }
 
@@ -62,42 +64,6 @@ char *ft_strdup(const char *s) {
 	for (int i = 0; s[i]; i++)
 		res[i] = s[i];
 	return (res);
-}
-
-char *reverse(char *s) {
-	int len = ft_strlen(s);
-	char *res = ft_calloc(len + 1, sizeof(char));
-	if (!res)
-		return (NULL);
-	for (int i = 0; i < len; i++)
-		res[i] = s[len - i - 1];
-	return (res);
-}
-
-char *ft_lltoa(long long n) {
-	char *res = ft_calloc(21, sizeof(char));
-	if (!res)
-		return (NULL);
-	int i = 0;
-	if (n < 0) {
-		res[i++] = '-';
-		n *= -1;
-	}
-	while (n > 9) {
-		res[i++] = n % 10 + '0';
-		n /= 10;
-	}
-	res[i++] = n % 10 + '0';
-	res[i] = '\0';
-	char *rev = reverse(res);
-	free(res);
-	return (rev);
-}
-
-void ft_strcpy(char *dst, const char *src) {
-	while (*src)
-		*dst++ = *src++;
-	*dst = '\0';
 }
 
 int ft_strcmp(const char *s1, const char *s2) {

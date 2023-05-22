@@ -22,14 +22,16 @@ static int get_options(char *flag_str) {
     return (res);
 }
 
-t_ls parse(int ac, char **av) {
-    t_ls res = {0};
+t_args parse(int ac, char **av) {
+    t_args res = {0};
 
     int i = 1;
-    while (i < ac && av[i][0] == '-' && av[i][1] != '\0')
-        res.options |= get_options(av[i++] + 1);
-    while (i < ac)
-        ft_lstadd_back(&res.files, ft_lstnew(av[i++]));
+    while (i < ac) {
+        if (av[i][0] == '-' && av[i][1] != '\0')
+            res.options |= get_options(av[i++] + 1);
+        else
+            ft_lstadd_back(&res.files, ft_lstnew(av[i++]));
+    }
     if (!res.files)
         res.files = ft_lstnew(".");
     return (res);

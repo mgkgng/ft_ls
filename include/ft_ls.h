@@ -22,10 +22,10 @@
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define FILE(x, y) ((t_file *)(x->content))->y
 
-typedef struct s_ls {
+typedef struct s_args {
     int options;
     t_list *files;
-} t_ls;
+} t_args;
 
 typedef struct s_file {
     char *file;
@@ -42,5 +42,10 @@ typedef struct s_dir {
     t_list *subdirs;
 } t_dir;
 
-t_ls parse(int ac, char **av);
+extern t_args args;
+
+t_args parse(int ac, char **av);
+void ft_ls(char *path, char *file);
 void print_long_format(struct stat statbuf, int max_len_links, int max_len_size);
+void terminate(t_dir *dir);
+void print_ls_err(char *path);
