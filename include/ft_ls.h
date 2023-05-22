@@ -25,6 +25,8 @@
 typedef struct s_args {
     int options;
     t_list *files;
+    t_list *dirs;
+    int n_dirs;
 } t_args;
 
 typedef struct s_file {
@@ -45,7 +47,10 @@ typedef struct s_dir {
 extern t_args args;
 
 t_args parse(int ac, char **av);
-void ft_ls(char *path, char *file);
-void print_long_format(struct stat statbuf, int max_len_links, int max_len_size);
+void ft_ls_files(t_list *filenames);
+void ft_ls_dirs(char *path, char *file);
+void display(t_list *lst, int max_len_links, int max_len_size);
 void terminate(t_dir *dir);
 void print_ls_err(char *path);
+int compare_files(void *a, void *b, int flags);
+int compare_files_at_parsing(void *a, void *b, int flags);

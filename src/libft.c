@@ -111,7 +111,16 @@ void ft_lstsort(t_list **alst, int flags, int (*cmp)(void *, void *, int)) {
 	}
 }
 
-int ft_numlen(long long n) {
+int ft_lstsize(t_list *lst) {
+	int res = 0;
+	while (lst) {
+		res++;
+		lst = lst->next;
+	}
+	return (res);
+}
+
+int ft_nbrlen(long long n) {
 	int res = 0;
 	if (n < 0) {
 		res++;

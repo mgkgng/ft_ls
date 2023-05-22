@@ -28,8 +28,9 @@ char *ft_strjoin(char *s1, char *s2, bool free_s1);
 
 t_list *ft_lstnew(void *content);
 void ft_lstadd_back(t_list **alst, t_list *new_list);
+int ft_lstsize(t_list *lst);
 void ft_lstsort(t_list **alst, int flags, int (*cmp)(void *, void *, int));
 
 void *ft_calloc(size_t count, size_t size);
 
-int ft_numlen(long long n);
+int ft_nbrlen(long long n);

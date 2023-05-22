@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror
 TARGET = ft_ls
-SRC = src/main.c src/parse.c src/libft.c src/print.c src/ls.c src/utils.c
+SRC = src/main.c src/parse.c src/ls.c src/display.c src/utils.c src/libft.c
 OBJ = $(SRC:.c=.o)
 INC = -Iinclude/
 

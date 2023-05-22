@@ -29,10 +29,19 @@ t_args parse(int ac, char **av) {
     while (i < ac) {
         if (av[i][0] == '-' && av[i][1] != '\0')
             res.options |= get_options(av[i++] + 1);
-        else
-            ft_lstadd_back(&res.files, ft_lstnew(av[i++]));
+        else {
+            struct stat statbuf;
+            if (stat(av[i], &statbuf) == -1) {
+                ft_lstadd_back(&res.files, ft_lstnew(av[i++]));
+                continue ;
+            }
+            ft_lstadd_back((S_ISDIR(statbuf.st_mode)) ? &res.dirs : &res.files, ft_lstnew(av[i++]));
+        }
     }
-    if (!res.files)
-        res.files = ft_lstnew(".");
+    ft_lstsort(&res.files, res.options, compare_files_at_parsing);
+    ft_lstsort(&res.dirs, res.options, compare_files_at_parsing);
+    if (!res.files && !res.dirs)
+        res.dirs = ft_lstnew(".");
+    res.n_dirs = ft_lstsize(res.dirs);
     return (res);
 }
