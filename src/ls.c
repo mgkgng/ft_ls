@@ -28,6 +28,19 @@ t_dir *get_dir_info(char *path) {
         if (lstat(file_path, &statbuf) == -1) {
             print_ls_err(path);
             continue ;
+        } 
+        if (args.options & FLAG_L && S_ISLNK(statbuf.st_mode)) {
+            char ltarget[256]; // file name length limit (<256)
+
+            ssize_t len = readlink(file->path, ltarget, sizeof(ltarget) - 1);
+            if (len != -1) {
+                ltarget[len] = '\0';
+                file->file = ft_strjoin(file->file, " -> ", false);
+                file->file = ft_strjoin(file->file, ltarget, true);
+            } else {
+                perror("readlink");
+                continue ;
+            }
         }
         if ((args.options & FLAG_RECUR) && S_ISDIR(statbuf.st_mode))
             ft_lstadd_back(&subdirs, ft_lstnew(ft_strdup(filename)));
@@ -64,10 +77,9 @@ void ft_ls_dirs(char *path, char *file) {
         return ;
     if (args.options & FLAG_L) {
         ft_putstr("total ");
-        ft_putnbr(dir->total);
+        ft_putnbr(dir->total / 2);
         ft_putendl("");
     }
-
     display(dir->files, dir->max_len_links, dir->max_len_size);
     if (dir->subdirs) {
         t_list *curr = dir->subdirs;
@@ -90,9 +102,25 @@ void ft_ls_files(t_list *filenames) {
     while (curr) {
         struct stat statbuf;
         if (stat(curr->content, &statbuf) == -1) {
-            print_ls_err(curr->content);
-            curr = curr->next;
-            continue ;
+            if (!(args.options & FLAG_L) || lstat(curr->content, &statbuf) == -1) {
+                print_ls_err(curr->content);
+                curr = curr->next;
+                continue ;
+            }
+        }
+        if (S_ISLNK(statbuf.st_mode)) {
+            char ltarget[256]; // file name length limit (<256)
+
+            ssize_t len = readlink(curr->content, ltarget, sizeof(ltarget) - 1);
+            if (len != -1) {
+                ltarget[len] = '\0';
+                curr->content = ft_strjoin(curr->content, " -> ", false);
+                curr->content = ft_strjoin(curr->content, ltarget, true);
+            } else {
+                perror("readlink");
+                curr = curr->next;
+                continue ;
+            }
         }
         t_file *file = ft_calloc(1, sizeof(t_file));
         file->file = curr->content;

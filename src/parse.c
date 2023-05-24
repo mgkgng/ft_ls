@@ -15,7 +15,9 @@ static int get_options(char *flag_str) {
         else if (flag_str[i] == 't')
             res |= FLAG_T;
         else {
-            perror("ft_ls: invalid option -- ");
+            ft_putstr_fd("ft_ls: invalid option -- ", 2);
+            ft_putstr_fd(flag_str + i, 2);
+            ft_putstr_fd("\n", 2);
             exit(EXIT_FAILURE);
         }
     }

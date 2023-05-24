@@ -15,7 +15,7 @@ static void print_mode(mode_t mode) {
     mode_str[9] = (mode & S_IXOTH) ? 'x' : '-';
     mode_str[10] = '\0';
     ft_putstr(mode_str);
-    ft_putstr("  ");
+    ft_putchar(' ');
 }
 
 static void print_owner(uid_t uid) {
@@ -51,9 +51,9 @@ static void print_time(time_t time) {
     start_of_time[-1] = '\0';
     start_of_time[5] = '\0';
 
-    ft_putstr(start_of_day);
-    ft_putstr(" ");
     ft_putstr(start_of_month);
+    ft_putstr(" ");
+    ft_putstr(start_of_day);
     ft_putstr(" ");
     ft_putstr(start_of_time);
     ft_putstr(" ");
