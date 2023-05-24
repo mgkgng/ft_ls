@@ -42,9 +42,12 @@ t_dir *get_dir_info(char *path) {
                 continue ;
             }
         }
-        if ((args.options & FLAG_RECUR) && S_ISDIR(statbuf.st_mode))
-            ft_lstadd_back(&subdirs, ft_lstnew(ft_strdup(filename)));
-
+        if ((args.options & FLAG_RECUR) && S_ISDIR(statbuf.st_mode)) {
+            t_file *subdir = ft_calloc(1, sizeof(t_file));
+            subdir->file = ft_strdup(filename);
+            subdir->stat = statbuf;
+            ft_lstadd_back(&subdirs, ft_lstnew(subdir));
+        }
         file->stat = statbuf;
         max_len_size = MAX(max_len_size, ft_nbrlen(statbuf.st_size));
         max_len_links = MAX(max_len_links, ft_nbrlen(statbuf.st_nlink));
@@ -82,10 +85,13 @@ void ft_ls_dirs(char *path, char *file) {
     }
     display(dir->files, dir->max_len_links, dir->max_len_size);
     if (dir->subdirs) {
+        if (args.options & FLAG_T) {
+            ft_lstsort(&dir->subdirs, args.options, compare_files);
+        }
         t_list *curr = dir->subdirs;
         while (curr) {
             ft_putendl("");
-            ft_ls_dirs(path, curr->content);
+            ft_ls_dirs(path, FILE(curr, file));
             curr = curr->next;
         }
     }

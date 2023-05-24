@@ -36,6 +36,7 @@ void terminate(t_dir *dir) {
     tmp = dir->subdirs;
     while (tmp) {
         t_list *next = tmp->next;
+        free(FILE(tmp, file));
         free(tmp->content);
         free(tmp);
         tmp = next;
