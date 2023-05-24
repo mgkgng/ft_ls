@@ -9,13 +9,16 @@ int main(int ac, char **av) {
         ft_ls_files(args.files);
     t_list *curr = args.dirs;
     while (curr) {
+        t_list *next = curr->next;
         if (args.n_dirs > 1 || args.files) {
             ft_putendl("");
-            ft_putstr(curr->content);
+            ft_putstr(FILE(curr, file));
             ft_putendl(":");
         }
-        ft_ls_dirs(curr->content, NULL);
-        curr = curr->next;
+        ft_ls_dirs(FILE(curr, file), NULL);
+        free(curr->content);
+        free(curr);
+        curr = next;
     }
     return 0;
 }

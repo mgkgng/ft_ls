@@ -12,10 +12,6 @@ int compare_files(void *a, void *b, int flags) {
     return (flags & FLAG_REV) ? ft_strcmp(file_b->file, file_a->file) : ft_strcmp(file_a->file, file_b->file);
 }
 
-int compare_files_at_parsing(void *a, void *b, int flags) {
-    return (flags & FLAG_REV) ? ft_strcmp(b, a) : ft_strcmp(a, b);
-}
-
 void print_ls_err(char *path) {
     ft_putstr_fd("ft_ls: ", 2);
     ft_putstr_fd(path, 2);

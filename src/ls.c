@@ -100,16 +100,16 @@ void ft_ls_dirs(char *path, char *file) {
     terminate(dir);
 }
 
-void ft_ls_files(t_list *filenames) {
-    t_list *files = NULL;
-    t_list *curr = filenames;
+void ft_ls_files(t_list *files) {
+    t_list *summary = NULL;
+    t_list *curr = files;
     int max_len_links = 0;
     int max_len_size = 0;
     while (curr) {
         struct stat statbuf;
-        if (stat(curr->content, &statbuf) == -1) {
-            if (!(args.options & FLAG_L) || lstat(curr->content, &statbuf) == -1) {
-                print_ls_err(curr->content);
+        if (stat(FILE(curr, file), &statbuf) == -1) {
+            if (!(args.options & FLAG_L) || lstat(FILE(curr, file), &statbuf) == -1) {
+                print_ls_err(FILE(curr, file));
                 curr = curr->next;
                 continue ;
             }
@@ -120,8 +120,8 @@ void ft_ls_files(t_list *filenames) {
             ssize_t len = readlink(curr->content, ltarget, sizeof(ltarget) - 1);
             if (len != -1) {
                 ltarget[len] = '\0';
-                curr->content = ft_strjoin(curr->content, " -> ", false);
-                curr->content = ft_strjoin(curr->content, ltarget, true);
+                FILE(curr, file) = ft_strjoin(FILE(curr, file), " -> ", false);
+                FILE(curr, file) = ft_strjoin(FILE(curr, file), ltarget, true);
             } else {
                 perror("readlink");
                 curr = curr->next;
@@ -129,18 +129,18 @@ void ft_ls_files(t_list *filenames) {
             }
         }
         t_file *file = ft_calloc(1, sizeof(t_file));
-        file->file = curr->content;
+        file->file = FILE(curr, file);
         file->stat = statbuf;
         max_len_size = MAX(max_len_size, ft_nbrlen(statbuf.st_size));
         max_len_links = MAX(max_len_links, ft_nbrlen(statbuf.st_nlink));
-        ft_lstadd_back(&files, ft_lstnew(file));
+        ft_lstadd_back(&summary, ft_lstnew(file));
         curr = curr->next;
     }
-    display(files, max_len_links, max_len_size);
-    while (files) {
-        t_list *next = files->next; 
-        free(files->content);
-        free(files);
-        files = next;
+    display(summary, max_len_links, max_len_size);
+    while (summary) {
+        t_list *next = summary->next; 
+        free(summary->content);
+        free(summary);
+        summary = next;
     }
 }

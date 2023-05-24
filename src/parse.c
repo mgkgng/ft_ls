@@ -24,6 +24,8 @@ static int get_options(char *flag_str) {
     return (res);
 }
 
+/** Should admit that it wasn't the best way to run stat two times,
+ * once at the parsing and once while running the ls command. **/
 t_args parse(int ac, char **av) {
     t_args res = {0};
 
@@ -32,16 +34,23 @@ t_args parse(int ac, char **av) {
         if (av[i][0] == '-' && av[i][1] != '\0')
             res.options |= get_options(av[i++] + 1);
         else {
+            if (av[i][ft_strlen(av[i]) - 1] == '/')
+                av[i][ft_strlen(av[i]) - 1] = '\0';
+            t_file *file = ft_calloc(1, sizeof(t_file));
             struct stat statbuf;
             if (stat(av[i], &statbuf) == -1) {
-                ft_lstadd_back(&res.files, ft_lstnew(av[i++]));
+                file->file = av[i++];
+                file->stat = statbuf;
+                ft_lstadd_back(&res.files, ft_lstnew(file));
                 continue ;
             }
-            ft_lstadd_back((S_ISDIR(statbuf.st_mode)) ? &res.dirs : &res.files, ft_lstnew(av[i++]));
+            file->file = av[i++];
+            file->stat = statbuf;
+            ft_lstadd_back((S_ISDIR(statbuf.st_mode)) ? &res.dirs : &res.files, ft_lstnew(file));
         }
     }
-    ft_lstsort(&res.files, res.options, compare_files_at_parsing);
-    ft_lstsort(&res.dirs, res.options, compare_files_at_parsing);
+    ft_lstsort(&res.files, res.options, compare_files);
+    ft_lstsort(&res.dirs, res.options, compare_files);
     if (!res.files && !res.dirs)
         res.dirs = ft_lstnew(".");
     res.n_dirs = ft_lstsize(res.dirs);
