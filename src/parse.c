@@ -51,8 +51,11 @@ t_args parse(int ac, char **av) {
     }
     ft_lstsort(&res.files, res.options, compare_files);
     ft_lstsort(&res.dirs, res.options, compare_files);
-    if (!res.files && !res.dirs)
-        res.dirs = ft_lstnew(".");
+    if (!res.files && !res.dirs) {
+        t_file *file = ft_calloc(1, sizeof(t_file));
+        file->file = ".";
+        ft_lstadd_back(&res.dirs, ft_lstnew(file));
+    }
     res.n_dirs = ft_lstsize(res.dirs);
     return (res);
 }
